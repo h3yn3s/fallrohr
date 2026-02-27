@@ -1,0 +1,14 @@
+services:
+  fallrohr:
+    image: ghcr.io/h3yn3s/fallrohr:main
+    ports:
+      - '3000:3000'
+    environment:
+      - DATA_DIR=/data
+      - PORT=3000
+      - ORIGIN=http://localhost:3000
+      # - AUTH_USERNAME=admin
+      # - AUTH_PASSWORD=changeme
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
