@@ -74,11 +74,23 @@ export function getJobLogs(jobId: number) {
 	return jobs.find((j) => j.id === jobId)?.logs ?? [];
 }
 
+function isSafeUrl(s: string): boolean {
+	try {
+		const u = new URL(s);
+		return u.protocol === 'http:' || u.protocol === 'https:';
+	} catch {
+		return false;
+	}
+}
+
 export function enqueue(
 	videoUrl: string,
 	videoId?: string,
 	metaOverrides?: MetaOverrides
 ): DownloadJob {
+	if (!isSafeUrl(videoUrl)) {
+		throw new Error('Invalid URL: only http/https allowed');
+	}
 	// Deduplicate: if same URL or videoId is already queued/active, return existing
 	const existing = jobs.find(
 		(j) =>
@@ -363,7 +375,7 @@ function runJob(job: DownloadJob) {
 	jobLog(job, 'Resolving URL...');
 
 	// Step 1: Flat-playlist resolve to detect playlists
-	const resolveArgs = ['--flat-playlist', '--dump-json', job.videoUrl];
+	const resolveArgs = ['--flat-playlist', '--dump-json', '--', job.videoUrl];
 	jobLog(job, `$ yt-dlp ${resolveArgs.join(' ')}`);
 	const resolveStart = performance.now();
 	console.log(`[cmd] job#${job.id} spawn: yt-dlp --flat-playlist --dump-json`);
@@ -455,7 +467,7 @@ function runJob(job: DownloadJob) {
 function runSingleVideo(job: DownloadJob) {
 	jobLog(job, 'Fetching video metadata...');
 
-	const metaArgs = ['--dump-json', '--no-download', job.videoUrl];
+	const metaArgs = ['--dump-json', '--no-download', '--', job.videoUrl];
 	jobLog(job, `$ yt-dlp ${metaArgs.join(' ')}`);
 	const metaStart = performance.now();
 	console.log(`[cmd] job#${job.id} spawn: yt-dlp --dump-json --no-download`);
@@ -551,6 +563,7 @@ function runSingleVideo(job: DownloadJob) {
 			'--newline',
 			'-o',
 			outPath,
+			'--',
 			job.videoUrl
 		];
 		jobLog(job, `$ yt-dlp ${dlArgs.join(' ')}`);

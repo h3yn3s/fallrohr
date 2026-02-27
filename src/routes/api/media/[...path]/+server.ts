@@ -48,8 +48,9 @@ function nodeStreamToWeb(filePath: string, opts?: { start: number; end: number }
 export function GET({ params, request, url }) {
 	const filePath = join(DOWNLOAD_DIR, params.path);
 
-	// Prevent path traversal
-	if (!filePath.startsWith(DOWNLOAD_DIR)) {
+	// Prevent path traversal (trailing separator guards against sibling dir names)
+	const safeDirPrefix = DOWNLOAD_DIR.endsWith('/') ? DOWNLOAD_DIR : DOWNLOAD_DIR + '/';
+	if (!filePath.startsWith(safeDirPrefix)) {
 		return error(403);
 	}
 
@@ -101,7 +102,8 @@ export function GET({ params, request, url }) {
 		headers['Cache-Control'] = 'public, max-age=86400, immutable';
 	}
 	if (downloadName) {
-		headers['Content-Disposition'] = `attachment; filename="${downloadName}"`;
+		const safeName = downloadName.replace(/["\\\n\r]/g, '_');
+		headers['Content-Disposition'] = `attachment; filename="${safeName}"`;
 	}
 
 	return new Response(nodeStreamToWeb(filePath), { headers });

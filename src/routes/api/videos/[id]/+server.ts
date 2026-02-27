@@ -4,6 +4,10 @@ import { join } from 'path';
 import { getDb, DOWNLOAD_DIR } from '$lib/db';
 
 export async function DELETE({ params }) {
+	if (!/^[a-zA-Z0-9_-]+$/.test(params.id)) {
+		return json({ error: 'Invalid id' }, { status: 400 });
+	}
+
 	const db = await getDb();
 	const video = db.data.videos.find((v) => v.id === params.id);
 	if (!video) {
