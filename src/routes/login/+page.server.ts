@@ -18,13 +18,11 @@ export const actions = {
 		}
 
 		const token = createSession();
-		const secure = url.protocol === 'https:';
-
 		cookies.set('session', token, {
 			path: '/',
 			httpOnly: true,
 			sameSite: 'lax',
-			secure,
+			secure: false,
 			maxAge: 60 * 60 * 24 * 30
 		});
 
