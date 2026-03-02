@@ -22,13 +22,12 @@ See [docker-compose.yml](docker-compose.yml) and [.env.example](.env.example) fo
 
 ### Environment variables
 
-| Variable        | Description                                       | Default                 |
-| --------------- | ------------------------------------------------- | ----------------------- |
-| `DATA_DIR`      | Directory for downloads and the database          | `./downloads`           |
-| `PORT`          | Server port                                       | `3000`                  |
-| `ORIGIN`        | Public URL of the app (SvelteKit CSRF protection) | `http://localhost:3000` |
-| `AUTH_USERNAME` | Username for basic auth (optional)                | —                       |
-| `AUTH_PASSWORD` | Password for basic auth (optional)                | —                       |
+| Variable        | Description                              | Default       |
+| --------------- | ---------------------------------------- | ------------- |
+| `DATA_DIR`      | Directory for downloads and the database | `./downloads` |
+| `PORT`          | Server port                              | `3000`        |
+| `AUTH_USERNAME` | Username for basic auth (optional)       | —             |
+| `AUTH_PASSWORD` | Password for basic auth (optional)       | —             |
 
 Authentication is disabled unless both `AUTH_USERNAME` and `AUTH_PASSWORD` are set.
 

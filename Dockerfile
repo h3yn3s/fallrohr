@@ -22,6 +22,5 @@ COPY package.json .
 ENV NODE_ENV=production
 ENV DATA_DIR=/data
 ENV PORT=3000
-ENV ORIGIN=http://localhost:3000
 EXPOSE 3000
 CMD ["node", "build"]

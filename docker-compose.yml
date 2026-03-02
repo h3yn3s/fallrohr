@@ -6,7 +6,6 @@ services:
     environment:
       - DATA_DIR=/data
       - PORT=3000
-      - ORIGIN=http://localhost:3000
       # - AUTH_USERNAME=admin
       # - AUTH_PASSWORD=changeme
     volumes:
