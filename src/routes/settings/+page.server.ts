@@ -3,6 +3,8 @@ import { execSync } from 'child_process';
 import { join } from 'path';
 import { getDb, DOWNLOAD_DIR } from '$lib/db';
 
+declare const __APP_VERSION__: string;
+
 function getLibrarySizeBytes(): number {
 	try {
 		let total = 0;
@@ -45,6 +47,7 @@ async function loadSettings() {
 	}
 
 	return {
+		appVersion: __APP_VERSION__,
 		settings: db.data.settings,
 		ytdlpVersion,
 		stats: {

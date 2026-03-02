@@ -76,7 +76,7 @@
 				{/each}
 			</div>
 		</div>
-	{:then { settings, stats, ytdlpVersion }}
+	{:then { appVersion, settings, stats, ytdlpVersion }}
 		<h2 class="text-lg font-bold">Statistics</h2>
 		<div class="stats w-full stats-horizontal shadow">
 			<div class="stat">
@@ -194,5 +194,8 @@
 				<pre class="max-h-32 overflow-auto rounded bg-base-200 p-3 text-xs">{updateOutput}</pre>
 			{/if}
 		</section>
+
+		<div class="divider"></div>
+		<p class="text-sm text-base-content/60">fallrohr v{appVersion}</p>
 	{/await}
 </div>
