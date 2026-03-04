@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import VideoCard from '$lib/components/VideoCard.svelte';
+	import VideoListItem from '$lib/components/VideoListItem.svelte';
+	import VideoListItemDetailed from '$lib/components/VideoListItemDetailed.svelte';
+	import ViewToggle from '$lib/components/ViewToggle.svelte';
 	import { getQueue } from '$lib/download-queue.svelte';
 
 	let { data } = $props();
+	let viewMode = $state<'grid' | 'compact' | 'detailed'>('grid');
 
 	const queue = $derived(getQueue());
 	let seenDoneIds = new Set<number>();
@@ -34,6 +38,14 @@
 				(j.status === 'queued' || j.status === 'metadata' || j.status === 'downloading')
 		);
 	}
+
+	const containerClass = $derived(
+		viewMode === 'grid'
+			? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
+			: viewMode === 'compact'
+				? 'flex flex-col gap-1'
+				: 'flex flex-col gap-3'
+	);
 </script>
 
 <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-8">
@@ -65,31 +77,74 @@
 			{#if channel.isSubscribed}
 				<span class="badge badge-sm badge-primary">Subscribed</span>
 			{/if}
+			<div class="ml-auto">
+				<ViewToggle view={viewMode} onchange={(v) => (viewMode = v)} />
+			</div>
 		</div>
 
 		{#if channel.items.length === 0}
 			<p class="py-12 text-center text-base-content/50">No videos from this channel.</p>
 		{:else}
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div class={containerClass}>
 				{#each channel.items as item (item.videoId)}
-					<VideoCard
-						videoId={item.videoId}
-						title={item.title}
-						thumbnail={item.thumbnail}
-						channelName={item.channelName}
-						showChannel={false}
-						duration={item.duration}
-						downloaded={item.downloaded}
-						watchPercent={item.watchPercent}
-						downloadJob={jobForVideo(item.videoId)}
-						url={item.url}
-						ondownload={() =>
-							fetch(
-								`/api/download?url=${encodeURIComponent(item.url)}&videoId=${encodeURIComponent(item.videoId)}`
-							)}
-						uploadDate={item.uploadDate}
-						uploader={item.uploader}
-					/>
+					{#if viewMode === 'grid'}
+						<VideoCard
+							videoId={item.videoId}
+							title={item.title}
+							thumbnail={item.thumbnail}
+							channelName={item.channelName}
+							showChannel={false}
+							duration={item.duration}
+							downloaded={item.downloaded}
+							watchPercent={item.watchPercent}
+							downloadJob={jobForVideo(item.videoId)}
+							url={item.url}
+							ondownload={() =>
+								fetch(
+									`/api/download?url=${encodeURIComponent(item.url)}&videoId=${encodeURIComponent(item.videoId)}`
+								)}
+							uploadDate={item.uploadDate}
+							uploader={item.uploader}
+						/>
+					{:else if viewMode === 'compact'}
+						<VideoListItem
+							videoId={item.videoId}
+							title={item.title}
+							thumbnail={item.thumbnail}
+							channelName={item.channelName}
+							showChannel={false}
+							duration={item.duration}
+							downloaded={item.downloaded}
+							watchPercent={item.watchPercent}
+							downloadJob={jobForVideo(item.videoId)}
+							url={item.url}
+							ondownload={() =>
+								fetch(
+									`/api/download?url=${encodeURIComponent(item.url)}&videoId=${encodeURIComponent(item.videoId)}`
+								)}
+							uploadDate={item.uploadDate}
+							uploader={item.uploader}
+						/>
+					{:else}
+						<VideoListItemDetailed
+							videoId={item.videoId}
+							title={item.title}
+							thumbnail={item.thumbnail}
+							channelName={item.channelName}
+							showChannel={false}
+							duration={item.duration}
+							downloaded={item.downloaded}
+							watchPercent={item.watchPercent}
+							downloadJob={jobForVideo(item.videoId)}
+							url={item.url}
+							ondownload={() =>
+								fetch(
+									`/api/download?url=${encodeURIComponent(item.url)}&videoId=${encodeURIComponent(item.videoId)}`
+								)}
+							uploadDate={item.uploadDate}
+							uploader={item.uploader}
+						/>
+					{/if}
 				{/each}
 			</div>
 		{/if}

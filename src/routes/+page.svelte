@@ -1,12 +1,24 @@
 <script lang="ts">
 	import VideoCard from '$lib/components/VideoCard.svelte';
+	import VideoListItem from '$lib/components/VideoListItem.svelte';
+	import VideoListItemDetailed from '$lib/components/VideoListItemDetailed.svelte';
+	import ViewToggle from '$lib/components/ViewToggle.svelte';
 
 	let { data } = $props();
+	let viewMode = $state<'grid' | 'compact' | 'detailed'>('grid');
 
 	function watchPercent(video: { watch_progress?: number; duration: number }) {
 		if (!video.watch_progress || !video.duration) return 0;
 		return (video.watch_progress / video.duration) * 100;
 	}
+
+	const containerClass = $derived(
+		viewMode === 'grid'
+			? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
+			: viewMode === 'compact'
+				? 'flex flex-col gap-1'
+				: 'flex flex-col gap-3'
+	);
 </script>
 
 {#snippet skeleton()}
@@ -21,7 +33,69 @@
 	</div>
 {/snippet}
 
+{#snippet videoItem(
+	video: {
+		id: string;
+		title: string;
+		uploader?: string;
+		duration: number;
+		upload_date?: string;
+		watch_progress?: number;
+	},
+	extra?: { badgeText?: string; showChannel?: boolean }
+)}
+	{@const wp = watchPercent(video)}
+	{@const sc = extra?.showChannel ?? true}
+	{#if viewMode === 'grid'}
+		<VideoCard
+			videoId={video.id}
+			title={video.title}
+			thumbnail={`/api/media/${video.id}.jpg`}
+			channelName={video.uploader}
+			showChannel={sc}
+			duration={video.duration}
+			downloaded={true}
+			watchPercent={wp}
+			uploadDate={video.upload_date}
+			uploader={video.uploader}
+			badgeText={extra?.badgeText}
+		/>
+	{:else if viewMode === 'compact'}
+		<VideoListItem
+			videoId={video.id}
+			title={video.title}
+			thumbnail={`/api/media/${video.id}.jpg`}
+			channelName={video.uploader}
+			showChannel={sc}
+			duration={video.duration}
+			downloaded={true}
+			watchPercent={wp}
+			uploadDate={video.upload_date}
+			uploader={video.uploader}
+			badgeText={extra?.badgeText}
+		/>
+	{:else}
+		<VideoListItemDetailed
+			videoId={video.id}
+			title={video.title}
+			thumbnail={`/api/media/${video.id}.jpg`}
+			channelName={video.uploader}
+			showChannel={sc}
+			duration={video.duration}
+			downloaded={true}
+			watchPercent={wp}
+			uploadDate={video.upload_date}
+			uploader={video.uploader}
+			badgeText={extra?.badgeText}
+		/>
+	{/if}
+{/snippet}
+
 <div class="mx-auto flex max-w-5xl flex-col gap-12 px-4 py-8 sm:px-8">
+	<div class="flex items-center justify-end">
+		<ViewToggle view={viewMode} onchange={(v) => (viewMode = v)} />
+	</div>
+
 	<section>
 		<h1 class="mb-8 text-2xl font-bold">Continue Watching</h1>
 
@@ -31,20 +105,9 @@
 			{#if videos.length === 0}
 				<p class="text-center text-base-content/50">No videos in progress.</p>
 			{:else}
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div class={containerClass}>
 					{#each videos as video (video.id)}
-						<VideoCard
-							videoId={video.id}
-							title={video.title}
-							thumbnail={`/api/media/${video.id}.jpg`}
-							channelName={video.uploader}
-							showChannel={true}
-							duration={video.duration}
-							downloaded={true}
-							watchPercent={watchPercent(video)}
-							uploadDate={video.upload_date}
-							uploader={video.uploader}
-						/>
+						{@render videoItem(video)}
 					{/each}
 				</div>
 			{/if}
@@ -60,21 +123,9 @@
 			{#if videos.length === 0}
 				<p class="text-center text-base-content/50">No new videos.</p>
 			{:else}
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div class={containerClass}>
 					{#each videos as video (video.id)}
-						<VideoCard
-							videoId={video.id}
-							title={video.title}
-							thumbnail={`/api/media/${video.id}.jpg`}
-							channelName={video.uploader}
-							showChannel={true}
-							duration={video.duration}
-							downloaded={true}
-							watchPercent={0}
-							uploadDate={video.upload_date}
-							uploader={video.uploader}
-							badgeText="NEW"
-						/>
+						{@render videoItem(video, { badgeText: 'NEW' })}
 					{/each}
 				</div>
 			{/if}
@@ -90,20 +141,9 @@
 			{#if videos.length === 0}
 				<p class="text-center text-base-content/50">No unwatched videos.</p>
 			{:else}
-				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div class={containerClass}>
 					{#each videos as video (video.id)}
-						<VideoCard
-							videoId={video.id}
-							title={video.title}
-							thumbnail={`/api/media/${video.id}.jpg`}
-							channelName={video.uploader}
-							showChannel={true}
-							duration={video.duration}
-							downloaded={true}
-							watchPercent={0}
-							uploadDate={video.upload_date}
-							uploader={video.uploader}
-						/>
+						{@render videoItem(video)}
 					{/each}
 				</div>
 			{/if}
