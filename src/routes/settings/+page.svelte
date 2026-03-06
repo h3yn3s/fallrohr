@@ -23,7 +23,7 @@
 		return parts.join(' ');
 	}
 
-	async function updateSetting(key: string, value: number) {
+	async function updateSetting(key: string, value: number | string | boolean) {
 		await fetch('/api/settings', {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
@@ -110,6 +110,43 @@
 
 		<div class="divider"></div>
 		<h2 class="text-lg font-bold">Settings</h2>
+
+		<section class="flex flex-col gap-4">
+			<div>
+				<h3 class="font-semibold">Appearance</h3>
+				<p class="text-sm text-base-content/60">Default view mode for video lists.</p>
+			</div>
+			<div class="flex flex-wrap gap-2">
+				<button
+					class="btn btn-sm"
+					class:btn-primary={settings.defaultView === 'grid'}
+					class:btn-ghost={settings.defaultView !== 'grid'}
+					onclick={() => updateSetting('defaultView', 'grid')}
+				>
+					Grid
+				</button>
+				<button
+					class="btn btn-sm"
+					class:btn-primary={settings.defaultView === 'list'}
+					class:btn-ghost={settings.defaultView !== 'list'}
+					onclick={() => updateSetting('defaultView', 'list')}
+				>
+					List
+				</button>
+			</div>
+			<label class="flex cursor-pointer items-center justify-between">
+				<div>
+					<span class="text-sm">Show experimental features</span>
+					<p class="text-xs text-base-content/50">Adds an Experimental page to the navigation.</p>
+				</div>
+				<input
+					type="checkbox"
+					class="toggle toggle-primary toggle-sm"
+					checked={settings.showExperimental}
+					onchange={() => updateSetting('showExperimental', !settings.showExperimental)}
+				/>
+			</label>
+		</section>
 
 		<section class="flex flex-col gap-4">
 			<div>

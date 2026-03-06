@@ -140,13 +140,14 @@
 	}
 
 	// --- Navigation ---
-	const navItems = [
+	const navItems = $derived([
 		{ href: '/', label: 'Home' },
 		{ href: '/channels', label: 'Channels' },
 		{ href: '/library', label: 'Library' },
 		{ href: '/subscriptions', label: 'Subscriptions' },
+		...(data.showExperimental ? [{ href: '/experimental', label: 'Experimental' }] : []),
 		{ href: '/settings', label: 'Settings' }
-	];
+	]);
 
 	function isActive(href: string) {
 		if (href === '/') return page.url.pathname === '/';

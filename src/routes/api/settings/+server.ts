@@ -19,6 +19,12 @@ export async function PATCH({ request }) {
 	if (typeof body.maxResolution === 'number' && body.maxResolution > 0) {
 		db.data.settings.maxResolution = body.maxResolution;
 	}
+	if (body.defaultView === 'grid' || body.defaultView === 'list') {
+		db.data.settings.defaultView = body.defaultView;
+	}
+	if (typeof body.showExperimental === 'boolean') {
+		db.data.settings.showExperimental = body.showExperimental;
+	}
 
 	await db.write();
 	return json(db.data.settings);

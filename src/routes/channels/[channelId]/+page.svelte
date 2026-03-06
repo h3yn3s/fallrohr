@@ -2,12 +2,11 @@
 	import { invalidateAll } from '$app/navigation';
 	import VideoCard from '$lib/components/VideoCard.svelte';
 	import VideoListItem from '$lib/components/VideoListItem.svelte';
-	import VideoListItemDetailed from '$lib/components/VideoListItemDetailed.svelte';
-	import ViewToggle from '$lib/components/ViewToggle.svelte';
 	import { getQueue } from '$lib/download-queue.svelte';
 
 	let { data } = $props();
-	let viewMode = $state<'grid' | 'compact' | 'detailed'>('grid');
+
+	const viewMode = $derived(data.defaultView);
 
 	const queue = $derived(getQueue());
 	let seenDoneIds = new Set<number>();
@@ -42,9 +41,7 @@
 	const containerClass = $derived(
 		viewMode === 'grid'
 			? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
-			: viewMode === 'compact'
-				? 'flex flex-col gap-1'
-				: 'flex flex-col gap-3'
+			: 'flex flex-col gap-1'
 	);
 </script>
 
@@ -77,9 +74,6 @@
 			{#if channel.isSubscribed}
 				<span class="badge badge-sm badge-primary">Subscribed</span>
 			{/if}
-			<div class="ml-auto">
-				<ViewToggle view={viewMode} onchange={(v) => (viewMode = v)} />
-			</div>
 		</div>
 
 		{#if channel.items.length === 0}
@@ -106,27 +100,8 @@
 							uploadDate={item.uploadDate}
 							uploader={item.uploader}
 						/>
-					{:else if viewMode === 'compact'}
-						<VideoListItem
-							videoId={item.videoId}
-							title={item.title}
-							thumbnail={item.thumbnail}
-							channelName={item.channelName}
-							showChannel={false}
-							duration={item.duration}
-							downloaded={item.downloaded}
-							watchPercent={item.watchPercent}
-							downloadJob={jobForVideo(item.videoId)}
-							url={item.url}
-							ondownload={() =>
-								fetch(
-									`/api/download?url=${encodeURIComponent(item.url)}&videoId=${encodeURIComponent(item.videoId)}`
-								)}
-							uploadDate={item.uploadDate}
-							uploader={item.uploader}
-						/>
 					{:else}
-						<VideoListItemDetailed
+						<VideoListItem
 							videoId={item.videoId}
 							title={item.title}
 							thumbnail={item.thumbnail}

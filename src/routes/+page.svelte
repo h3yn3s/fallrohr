@@ -1,11 +1,10 @@
 <script lang="ts">
 	import VideoCard from '$lib/components/VideoCard.svelte';
 	import VideoListItem from '$lib/components/VideoListItem.svelte';
-	import VideoListItemDetailed from '$lib/components/VideoListItemDetailed.svelte';
-	import ViewToggle from '$lib/components/ViewToggle.svelte';
 
 	let { data } = $props();
-	let viewMode = $state<'grid' | 'compact' | 'detailed'>('grid');
+
+	const viewMode = $derived(data.defaultView);
 
 	function watchPercent(video: { watch_progress?: number; duration: number }) {
 		if (!video.watch_progress || !video.duration) return 0;
@@ -15,9 +14,7 @@
 	const containerClass = $derived(
 		viewMode === 'grid'
 			? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
-			: viewMode === 'compact'
-				? 'flex flex-col gap-1'
-				: 'flex flex-col gap-3'
+			: 'flex flex-col gap-1'
 	);
 </script>
 
@@ -60,22 +57,8 @@
 			uploader={video.uploader}
 			badgeText={extra?.badgeText}
 		/>
-	{:else if viewMode === 'compact'}
-		<VideoListItem
-			videoId={video.id}
-			title={video.title}
-			thumbnail={`/api/media/${video.id}.jpg`}
-			channelName={video.uploader}
-			showChannel={sc}
-			duration={video.duration}
-			downloaded={true}
-			watchPercent={wp}
-			uploadDate={video.upload_date}
-			uploader={video.uploader}
-			badgeText={extra?.badgeText}
-		/>
 	{:else}
-		<VideoListItemDetailed
+		<VideoListItem
 			videoId={video.id}
 			title={video.title}
 			thumbnail={`/api/media/${video.id}.jpg`}
@@ -92,10 +75,6 @@
 {/snippet}
 
 <div class="mx-auto flex max-w-5xl flex-col gap-12 px-4 py-8 sm:px-8">
-	<div class="flex items-center justify-end">
-		<ViewToggle view={viewMode} onchange={(v) => (viewMode = v)} />
-	</div>
-
 	<section>
 		<h1 class="mb-8 text-2xl font-bold">Continue Watching</h1>
 

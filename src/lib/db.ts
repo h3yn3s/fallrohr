@@ -44,6 +44,8 @@ export interface Settings {
 	keepUnwatched: number;
 	keepWatched: number;
 	maxResolution: number;
+	defaultView: 'grid' | 'list';
+	showExperimental: boolean;
 }
 
 export interface ChannelResult {
@@ -90,14 +92,28 @@ export async function getDb() {
 			videos: [],
 			subscriptions: [],
 			feedItems: [],
-			settings: { keepUnwatched: 5, keepWatched: 3, maxResolution: 1080 },
+			settings: {
+				keepUnwatched: 5,
+				keepWatched: 3,
+				maxResolution: 1080,
+				defaultView: 'grid' as const,
+				showExperimental: false
+			},
 			cronLog: [],
 			cronLogAggregated: []
 		});
 		dbInstance.data.subscriptions ??= [];
 		dbInstance.data.feedItems ??= [];
-		dbInstance.data.settings ??= { keepUnwatched: 5, keepWatched: 3, maxResolution: 1080 };
+		dbInstance.data.settings ??= {
+			keepUnwatched: 5,
+			keepWatched: 3,
+			maxResolution: 1080,
+			defaultView: 'grid',
+			showExperimental: false
+		};
 		dbInstance.data.settings.maxResolution ??= 1440;
+		dbInstance.data.settings.defaultView ??= 'grid';
+		dbInstance.data.settings.showExperimental ??= false;
 		dbInstance.data.cronLog ??= [];
 		dbInstance.data.cronLogAggregated ??= [];
 		for (const v of dbInstance.data.videos) {

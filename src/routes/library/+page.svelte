@@ -1,8 +1,6 @@
 <script lang="ts">
 	import VideoCard from '$lib/components/VideoCard.svelte';
 	import VideoListItem from '$lib/components/VideoListItem.svelte';
-	import VideoListItemDetailed from '$lib/components/VideoListItemDetailed.svelte';
-	import ViewToggle from '$lib/components/ViewToggle.svelte';
 	import type { VideoMeta } from '$lib/db';
 
 	let { data } = $props();
@@ -12,7 +10,8 @@
 	let watchFilter = $state<'all' | 'watched' | 'unwatched'>('all');
 	let channelFilter = $state('');
 	let textFilter = $state('');
-	let viewMode = $state<'grid' | 'compact' | 'detailed'>('grid');
+
+	const viewMode = $derived(data.defaultView);
 
 	function watchPercent(video: VideoMeta) {
 		if (!video.watch_progress || !video.duration) return 0;
@@ -170,7 +169,6 @@
 					onchange={() => (watchFilter = 'unwatched')}
 				/>
 			</div>
-			<ViewToggle view={viewMode} onchange={(v) => (viewMode = v)} />
 		</div>
 
 		{#if library.videos.length === 0}
@@ -189,9 +187,7 @@
 						<div
 							class={viewMode === 'grid'
 								? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
-								: viewMode === 'compact'
-									? 'flex flex-col gap-1'
-									: 'flex flex-col gap-3'}
+								: 'flex flex-col gap-1'}
 						>
 							{#each group.videos as video (video.id)}
 								{#if viewMode === 'grid'}
@@ -208,21 +204,8 @@
 										uploadDate={video.upload_date}
 										uploader={video.uploader}
 									/>
-								{:else if viewMode === 'compact'}
-									<VideoListItem
-										videoId={video.id}
-										title={video.title}
-										thumbnail={`/api/media/${video.id}.jpg`}
-										channelName={video.uploader}
-										showChannel={groupBy !== 'channel'}
-										duration={video.duration}
-										downloaded={true}
-										watchPercent={watchPercent(video)}
-										uploadDate={video.upload_date}
-										uploader={video.uploader}
-									/>
 								{:else}
-									<VideoListItemDetailed
+									<VideoListItem
 										videoId={video.id}
 										title={video.title}
 										thumbnail={`/api/media/${video.id}.jpg`}

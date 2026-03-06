@@ -25,6 +25,7 @@
 		thumbnail,
 		channelName,
 		showChannel = true,
+		timeLabel,
 		duration = 0,
 		downloaded = false,
 		watchPercent = 0,
@@ -151,15 +152,19 @@
 		{/if}
 	</div>
 
-	<div class="flex min-w-0 flex-1 items-center gap-2">
-		<span class="truncate text-sm font-medium">{title}</span>
-		{#if badgeText}<span class="badge badge-xs badge-accent">{badgeText}</span>{/if}
-		{#if showChannel && channelName}
-			<span class="hidden text-xs text-base-content/60 sm:inline">{channelName}</span>
-		{/if}
-		{#if isQueued && downloadJob?.status === 'downloading'}
-			<span class="ml-auto text-xs text-primary">{downloadJob.progress.toFixed(0)}%</span>
-		{/if}
+	<div class="flex min-w-0 flex-1 flex-col justify-center">
+		<div class="flex items-center gap-2">
+			<span class="truncate text-sm font-medium">{title}</span>
+			{#if badgeText}<span class="badge badge-xs badge-accent">{badgeText}</span>{/if}
+			{#if isQueued && downloadJob?.status === 'downloading'}
+				<span class="ml-auto text-xs text-primary">{downloadJob.progress.toFixed(0)}%</span>
+			{/if}
+		</div>
+		<div class="flex flex-wrap items-center gap-x-2 text-xs text-base-content/60">
+			{#if showChannel && channelName}<span>{channelName}</span>{/if}
+			{#if timeLabel}<span>{timeLabel}</span>{/if}
+			{#if uploadDate}<span>{uploadDate}</span>{/if}
+		</div>
 	</div>
 
 	<details class="dropdown dropdown-end z-20" bind:open={menuOpen}>
