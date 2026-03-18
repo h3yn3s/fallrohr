@@ -1,9 +1,10 @@
-import { spawn, execFile, type ChildProcess } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import { createHash } from 'crypto';
 import { mkdirSync, writeFileSync, unlinkSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { getDb, DOWNLOAD_DIR, type VideoMeta } from '$lib/db';
 import { runCleanup } from '$lib/server/cleanup';
+import { generateThumbnail, probeResolution } from '$lib/server/media';
 
 type Listener = (event: string, data: string) => void;
 
@@ -286,42 +287,6 @@ function pruneFinished() {
 
 function markFinished(job: DownloadJob) {
 	(job as DownloadJob & { _finishedAt: number })._finishedAt = Date.now();
-}
-
-function generateThumbnail(videoPath: string, thumbPath: string): Promise<void> {
-	return new Promise((resolve, reject) => {
-		execFile(
-			'ffmpeg',
-			['-y', '-ss', '5', '-i', videoPath, '-frames:v', '1', '-q:v', '2', thumbPath],
-			{ timeout: 15000 },
-			(err) => (err ? reject(err) : resolve())
-		);
-	});
-}
-
-function probeResolution(videoPath: string): Promise<string> {
-	return new Promise((resolve) => {
-		execFile(
-			'ffprobe',
-			[
-				'-v',
-				'error',
-				'-select_streams',
-				'v:0',
-				'-show_entries',
-				'stream=width,height',
-				'-of',
-				'csv=p=0',
-				videoPath
-			],
-			{ timeout: 10000 },
-			(err, stdout) => {
-				if (err || !stdout.trim()) return resolve('');
-				const [w, h] = stdout.trim().split(',');
-				resolve(w && h ? `${w}x${h}` : '');
-			}
-		);
-	});
 }
 
 const PLAYLIST_HOSTS = [

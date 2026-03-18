@@ -22,12 +22,21 @@
 	let addModal = $state<Modal>();
 
 	// --- Add video form ---
+	let addTab = $state<'url' | 'upload'>('url');
 	let addUrl = $state('');
 	let addError = $state('');
 	let addShowMeta = $state(false);
 	let addMetaTitle = $state('');
 	let addMetaUploader = $state('');
 	let addMetaDate = $state(new Date().toISOString().slice(0, 10));
+
+	// --- Upload form ---
+	let uploadFile = $state<File | null>(null);
+	let uploadTitle = $state('');
+	let uploadUploader = $state('');
+	let uploadDate = $state(new Date().toISOString().slice(0, 10));
+	let uploadError = $state('');
+	let uploadUploading = $state(false);
 
 	async function addDownload() {
 		if (!addUrl.trim()) return;
@@ -52,6 +61,45 @@
 			}
 		} catch {
 			addError = 'Request failed';
+		}
+	}
+
+	function handleFileSelect(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const file = input.files?.[0] ?? null;
+		uploadFile = file;
+		if (file && !uploadTitle) {
+			uploadTitle = file.name.replace(/\.mp4$/i, '');
+		}
+	}
+
+	async function uploadVideo() {
+		if (!uploadFile) return;
+		uploadError = '';
+		uploadUploading = true;
+
+		const formData = new FormData();
+		formData.append('file', uploadFile);
+		formData.append('title', uploadTitle.trim());
+		formData.append('uploader', uploadUploader.trim());
+		formData.append('date', uploadDate.trim());
+
+		try {
+			const res = await fetch('/api/upload', { method: 'POST', body: formData });
+			if (!res.ok) {
+				const body = await res.json();
+				uploadError = body.error ?? 'Upload failed';
+			} else {
+				uploadFile = null;
+				uploadTitle = '';
+				uploadUploader = '';
+				uploadDate = new Date().toISOString().slice(0, 10);
+				addModal?.close();
+			}
+		} catch {
+			uploadError = 'Request failed';
+		} finally {
+			uploadUploading = false;
 		}
 	}
 
@@ -333,59 +381,126 @@
 	<Modal bind:this={addModal} boxClass="flex max-w-lg flex-col gap-4">
 		<h3 class="text-lg font-bold">Add video</h3>
 
-		<div class="flex gap-2">
-			<input
-				type="text"
-				placeholder="Video URL (YouTube, Vimeo, etc.)"
-				class="input grow input-primary"
-				bind:value={addUrl}
-				onkeydown={(e) => e.key === 'Enter' && addDownload()}
-			/>
-			<button class="btn btn-primary" onclick={addDownload}>Download</button>
+		<div role="tablist" class="tabs-bordered tabs">
+			<button
+				role="tab"
+				class="tab"
+				class:tab-active={addTab === 'url'}
+				onclick={() => (addTab = 'url')}>URL</button
+			>
+			<button
+				role="tab"
+				class="tab"
+				class:tab-active={addTab === 'upload'}
+				onclick={() => (addTab = 'upload')}>Upload</button
+			>
 		</div>
 
-		<label class="flex cursor-pointer items-center gap-2">
-			<input type="checkbox" class="checkbox checkbox-sm" bind:checked={addShowMeta} />
-			<span class="text-sm text-base-content/60">Override metadata</span>
-		</label>
-
-		{#if addShowMeta}
-			<div class="flex flex-col gap-3 rounded-lg border border-base-300 bg-base-100 p-4">
-				<p class="text-xs text-base-content/50">
-					Optional. yt-dlp will extract metadata automatically — these fields override what it
-					finds.
-				</p>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm">Title</span>
-					<input
-						type="text"
-						placeholder="Video title"
-						class="input input-sm"
-						bind:value={addMetaTitle}
-					/>
-				</label>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm">Uploader</span>
-					<input
-						type="text"
-						placeholder="Channel or uploader name"
-						class="input input-sm"
-						bind:value={addMetaUploader}
-					/>
-				</label>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm">Upload date</span>
-					<input type="date" class="input input-sm" bind:value={addMetaDate} />
-				</label>
+		{#if addTab === 'url'}
+			<div class="flex gap-2">
+				<input
+					type="text"
+					placeholder="Video URL (YouTube, Vimeo, etc.)"
+					class="input grow input-primary"
+					bind:value={addUrl}
+					onkeydown={(e) => e.key === 'Enter' && addDownload()}
+				/>
+				<button class="btn btn-primary" onclick={addDownload}>Download</button>
 			</div>
-		{/if}
 
-		{#if addError}
-			<div role="alert" class="alert alert-error">{addError}</div>
-		{/if}
+			<label class="flex cursor-pointer items-center gap-2">
+				<input type="checkbox" class="checkbox checkbox-sm" bind:checked={addShowMeta} />
+				<span class="text-sm text-base-content/60">Override metadata</span>
+			</label>
 
-		<p class="text-sm text-base-content/50">
-			Paste any URL supported by yt-dlp. The video will be added to the download queue.
-		</p>
+			{#if addShowMeta}
+				<div class="flex flex-col gap-3 rounded-lg border border-base-300 bg-base-100 p-4">
+					<p class="text-xs text-base-content/50">
+						Optional. yt-dlp will extract metadata automatically — these fields override what it
+						finds.
+					</p>
+					<label class="flex flex-col gap-1">
+						<span class="text-sm">Title</span>
+						<input
+							type="text"
+							placeholder="Video title"
+							class="input input-sm"
+							bind:value={addMetaTitle}
+						/>
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-sm">Uploader</span>
+						<input
+							type="text"
+							placeholder="Channel or uploader name"
+							class="input input-sm"
+							bind:value={addMetaUploader}
+						/>
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-sm">Upload date</span>
+						<input type="date" class="input input-sm" bind:value={addMetaDate} />
+					</label>
+				</div>
+			{/if}
+
+			{#if addError}
+				<div role="alert" class="alert alert-error">{addError}</div>
+			{/if}
+
+			<p class="text-sm text-base-content/50">
+				Paste any URL supported by yt-dlp. The video will be added to the download queue.
+			</p>
+		{:else}
+			<label class="flex flex-col gap-1">
+				<span class="text-sm">Video file</span>
+				<input
+					type="file"
+					accept=".mp4,video/mp4"
+					class="file-input file-input-primary"
+					onchange={handleFileSelect}
+				/>
+			</label>
+
+			<label class="flex flex-col gap-1">
+				<span class="text-sm">Title</span>
+				<input
+					type="text"
+					placeholder="Video title"
+					class="input input-sm"
+					bind:value={uploadTitle}
+				/>
+			</label>
+			<label class="flex flex-col gap-1">
+				<span class="text-sm">Channel / Uploader</span>
+				<input
+					type="text"
+					placeholder="Channel or uploader name"
+					class="input input-sm"
+					bind:value={uploadUploader}
+				/>
+			</label>
+			<label class="flex flex-col gap-1">
+				<span class="text-sm">Date</span>
+				<input type="date" class="input input-sm" bind:value={uploadDate} />
+			</label>
+
+			<button
+				class="btn btn-primary"
+				onclick={uploadVideo}
+				disabled={!uploadFile || uploadUploading}
+			>
+				{#if uploadUploading}
+					<span class="loading loading-sm loading-spinner"></span>
+					Uploading...
+				{:else}
+					Upload
+				{/if}
+			</button>
+
+			{#if uploadError}
+				<div role="alert" class="alert alert-error">{uploadError}</div>
+			{/if}
+		{/if}
 	</Modal>
 {/if}
