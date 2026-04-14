@@ -40,6 +40,7 @@
 		"@sveltejs/adapter-node": "^5.5.3",
 		"daisyui": "^5.5.18",
 		"fast-xml-parser": "^5.3.6",
-		"lowdb": "^7.0.1"
+		"lowdb": "^7.0.1",
+		"vidstack": "^1.12.13"
 	}
 }
