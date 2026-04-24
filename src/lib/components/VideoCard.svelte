@@ -37,9 +37,11 @@
 		badgeText
 	}: Props = $props();
 
-	const downloadFilename = $derived(
-		`${uploadDate || 'unknown'}-${(uploader || 'unknown').replace(/[^a-zA-Z0-9]/g, '_')}-${title.replace(/[^a-zA-Z0-9]/g, '_')}-${videoId}.mp4`
+	const downloadBase = $derived(
+		`${uploadDate || 'unknown'}-${(uploader || 'unknown').replace(/[^a-zA-Z0-9]/g, '_')}-${title.replace(/[^a-zA-Z0-9]/g, '_')}-${videoId}`
 	);
+	const downloadFilename = $derived(`${downloadBase}.mp4`);
+	const audioFilename = $derived(`${downloadBase}.m4a`);
 
 	function formatDuration(s: number) {
 		const h = Math.floor(s / 3600);
@@ -208,6 +210,14 @@
 						onclick={() => (menuOpen = false)}
 					>
 						Download mp4
+					</a>
+				</li>
+				<li>
+					<a
+						href="/api/media/{videoId}.m4a?download={encodeURIComponent(audioFilename)}"
+						onclick={() => (menuOpen = false)}
+					>
+						Download m4a
 					</a>
 				</li>
 				<li>

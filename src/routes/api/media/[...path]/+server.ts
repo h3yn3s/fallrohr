@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit';
 
 const MIME: Record<string, string> = {
 	'.mp4': 'video/mp4',
+	'.m4a': 'audio/mp4',
 	'.jpg': 'image/jpeg',
 	'.webp': 'image/webp'
 };
@@ -65,9 +66,9 @@ export function GET({ params, request, url }) {
 	const contentType = MIME[ext] ?? 'application/octet-stream';
 	const downloadName = url.searchParams.get('download');
 
-	// Handle range requests for video seeking
+	// Handle range requests for video/audio seeking
 	const range = request.headers.get('range');
-	if (range && contentType.startsWith('video/')) {
+	if (range && (contentType.startsWith('video/') || contentType.startsWith('audio/'))) {
 		const parts = range.replace(/bytes=/, '').split('-');
 		const start = parseInt(parts[0], 10);
 		const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;

@@ -50,3 +50,53 @@ export function probeDuration(videoPath: string): Promise<number> {
 		);
 	});
 }
+
+export function probeAudioCodec(videoPath: string): Promise<string> {
+	return new Promise((resolve) => {
+		execFile(
+			'ffprobe',
+			[
+				'-v',
+				'error',
+				'-select_streams',
+				'a:0',
+				'-show_entries',
+				'stream=codec_name',
+				'-of',
+				'csv=p=0',
+				videoPath
+			],
+			{ timeout: 10000 },
+			(err, stdout) => {
+				if (err) return resolve('');
+				resolve(stdout.trim());
+			}
+		);
+	});
+}
+
+// Extract audio track from a video to an .m4a file.
+// Stream-copies when the source codec is already AAC/ALAC (container-compatible),
+// otherwise re-encodes to AAC 192k. -movflags +faststart enables progressive playback.
+export async function extractAudio(videoPath: string, audioPath: string): Promise<void> {
+	const codec = await probeAudioCodec(videoPath);
+	const canCopy = codec === 'aac' || codec === 'alac';
+	const args = canCopy
+		? ['-y', '-i', videoPath, '-vn', '-c:a', 'copy', '-movflags', '+faststart', audioPath]
+		: [
+				'-y',
+				'-i',
+				videoPath,
+				'-vn',
+				'-c:a',
+				'aac',
+				'-b:a',
+				'192k',
+				'-movflags',
+				'+faststart',
+				audioPath
+			];
+	return new Promise((resolve, reject) => {
+		execFile('ffmpeg', args, { timeout: 300000 }, (err) => (err ? reject(err) : resolve()));
+	});
+}

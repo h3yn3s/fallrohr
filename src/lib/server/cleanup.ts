@@ -3,9 +3,14 @@ import { join } from 'path';
 import { getDb, DOWNLOAD_DIR, type VideoMeta } from '$lib/db';
 
 function removeVideoFile(video: VideoMeta) {
-	// Only remove the .mp4, keep the .jpg thumbnail and db entry
+	// Only remove the .mp4 and .m4a, keep the .jpg thumbnail and db entry
 	try {
 		unlinkSync(join(DOWNLOAD_DIR, `${video.id}.mp4`));
+	} catch {
+		// file may not exist
+	}
+	try {
+		unlinkSync(join(DOWNLOAD_DIR, `${video.id}.m4a`));
 	} catch {
 		// file may not exist
 	}

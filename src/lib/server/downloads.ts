@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync, unlinkSync, readdirSync, existsSync } from 'f
 import { join } from 'path';
 import { getDb, DOWNLOAD_DIR, type VideoMeta } from '$lib/db';
 import { runCleanup } from '$lib/server/cleanup';
-import { generateThumbnail, probeResolution } from '$lib/server/media';
+import { generateThumbnail, probeResolution, extractAudio } from '$lib/server/media';
 
 type Listener = (event: string, data: string) => void;
 
@@ -580,6 +580,15 @@ function runSingleVideo(job: DownloadJob) {
 						} catch {
 							jobLog(job, 'Warning: failed to generate thumbnail');
 						}
+					}
+
+					// Extract audio-only m4a alongside the mp4
+					const audioPath = join(DOWNLOAD_DIR, `${videoId}.m4a`);
+					try {
+						await extractAudio(outPath, audioPath);
+						jobLog(job, 'Audio track extracted (m4a).');
+					} catch {
+						jobLog(job, 'Warning: failed to extract audio');
 					}
 
 					const existing = db.data.videos.find((v) => v.id === videoId);

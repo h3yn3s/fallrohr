@@ -6,10 +6,17 @@
 	import type { MediaPlayerElement } from 'vidstack/elements';
 
 	let { data } = $props();
-	const { video } = data;
+	const { video, hasAudio } = data;
 	let player: MediaPlayerElement;
 
-	const downloadFilename = `${video.upload_date}-${video.uploader.replace(/[^a-zA-Z0-9]/g, '_')}-${video.title.replace(/[^a-zA-Z0-9]/g, '_')}-${video.id}.mp4`;
+	const downloadBase = `${video.upload_date}-${video.uploader.replace(/[^a-zA-Z0-9]/g, '_')}-${video.title.replace(/[^a-zA-Z0-9]/g, '_')}-${video.id}`;
+	const downloadFilename = `${downloadBase}.mp4`;
+	const audioFilename = `${downloadBase}.m4a`;
+
+	let audioOnly = $state(false);
+	const playerSrc = $derived(
+		audioOnly && hasAudio ? `/api/media/${video.id}.m4a` : `/api/media/${video.id}.mp4`
+	);
 
 	let skipSponsors = $state(true);
 	let sponsorSegments: [number, number][] = $state([]);
@@ -133,14 +140,19 @@
 
 	<media-player
 		class="player rounded-lg"
+		class:player-audio={audioOnly && hasAudio}
 		title={video.title}
-		src="/api/media/{video.id}.mp4"
+		src={playerSrc}
 		poster="/api/media/{video.id}.jpg"
 		playsinline
 		bind:this={player}
 	>
 		<media-provider></media-provider>
-		<media-video-layout></media-video-layout>
+		{#if audioOnly && hasAudio}
+			<media-audio-layout></media-audio-layout>
+		{:else}
+			<media-video-layout></media-video-layout>
+		{/if}
 	</media-player>
 
 	<div class="mt-3 flex flex-wrap items-center gap-2">
@@ -173,11 +185,26 @@
 						Download mp4
 					</a>
 				</li>
+				{#if hasAudio}
+					<li>
+						<a href="/api/media/{video.id}.m4a?download={encodeURIComponent(audioFilename)}">
+							Download m4a
+						</a>
+					</li>
+				{/if}
 				<li class="mt-1 border-t border-base-300 pt-1">
 					<button class="text-error" onclick={deleteLocal}>Delete local file</button>
 				</li>
 			</ul>
 		</details>
+		{#if hasAudio}
+			<label class="flex cursor-pointer items-center gap-2">
+				<span class="text-sm {audioOnly ? 'text-success' : 'text-base-content/60'}">
+					Audio only
+				</span>
+				<input type="checkbox" class="toggle toggle-sm toggle-success" bind:checked={audioOnly} />
+			</label>
+		{/if}
 		<div class="ml-auto">
 			<div
 				class="tooltip tooltip-bottom"
@@ -245,5 +272,9 @@
 		aspect-ratio: 16 / 9;
 		width: 100%;
 		overflow: hidden;
+	}
+	.player.player-audio {
+		aspect-ratio: auto;
+		height: auto;
 	}
 </style>

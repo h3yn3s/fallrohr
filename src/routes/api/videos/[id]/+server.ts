@@ -14,9 +14,14 @@ export async function DELETE({ params }) {
 		return json({ error: 'Not found' }, { status: 404 });
 	}
 
-	// Remove video file, keep thumbnail and db entry
+	// Remove video + audio files, keep thumbnail and db entry
 	try {
 		unlinkSync(join(DOWNLOAD_DIR, `${params.id}.mp4`));
+	} catch {
+		// file may not exist
+	}
+	try {
+		unlinkSync(join(DOWNLOAD_DIR, `${params.id}.m4a`));
 	} catch {
 		// file may not exist
 	}

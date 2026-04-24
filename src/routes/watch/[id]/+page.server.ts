@@ -1,5 +1,7 @@
-import { getDb } from '$lib/db';
+import { getDb, DOWNLOAD_DIR } from '$lib/db';
 import { error } from '@sveltejs/kit';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
 // Vidstack custom elements upgrade themselves on connectedCallback, which
 // collides with Svelte hydration after a full page reload. Skipping SSR for
@@ -14,5 +16,6 @@ export async function load({ params }) {
 		video.seen = true;
 		await db.write();
 	}
-	return { video };
+	const hasAudio = existsSync(join(DOWNLOAD_DIR, `${video.id}.m4a`));
+	return { video, hasAudio };
 }
