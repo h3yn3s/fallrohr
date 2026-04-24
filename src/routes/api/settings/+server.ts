@@ -25,6 +25,12 @@ export async function PATCH({ request }) {
 	if (typeof body.showExperimental === 'boolean') {
 		db.data.settings.showExperimental = body.showExperimental;
 	}
+	if (typeof body.audioExtraction === 'boolean') {
+		db.data.settings.audioExtraction = body.audioExtraction;
+	}
+	if (typeof body.audioBitrate === 'number' && body.audioBitrate > 0) {
+		db.data.settings.audioBitrate = body.audioBitrate;
+	}
 
 	await db.write();
 	return json(db.data.settings);

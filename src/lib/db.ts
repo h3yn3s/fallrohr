@@ -46,6 +46,8 @@ export interface Settings {
 	maxResolution: number;
 	defaultView: 'grid' | 'list';
 	showExperimental: boolean;
+	audioExtraction: boolean;
+	audioBitrate: number;
 }
 
 export interface ChannelResult {
@@ -97,7 +99,9 @@ export async function getDb() {
 				keepWatched: 3,
 				maxResolution: 1080,
 				defaultView: 'grid' as const,
-				showExperimental: false
+				showExperimental: false,
+				audioExtraction: true,
+				audioBitrate: 192
 			},
 			cronLog: [],
 			cronLogAggregated: []
@@ -109,11 +113,15 @@ export async function getDb() {
 			keepWatched: 3,
 			maxResolution: 1080,
 			defaultView: 'grid',
-			showExperimental: false
+			showExperimental: false,
+			audioExtraction: true,
+			audioBitrate: 192
 		};
 		dbInstance.data.settings.maxResolution ??= 1440;
 		dbInstance.data.settings.defaultView ??= 'grid';
 		dbInstance.data.settings.showExperimental ??= false;
+		dbInstance.data.settings.audioExtraction ??= true;
+		dbInstance.data.settings.audioBitrate ??= 192;
 		dbInstance.data.cronLog ??= [];
 		dbInstance.data.cronLogAggregated ??= [];
 		for (const v of dbInstance.data.videos) {

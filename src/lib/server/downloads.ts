@@ -582,13 +582,16 @@ function runSingleVideo(job: DownloadJob) {
 						}
 					}
 
-					// Extract audio-only m4a alongside the mp4
-					const audioPath = join(DOWNLOAD_DIR, `${videoId}.m4a`);
-					try {
-						await extractAudio(outPath, audioPath);
-						jobLog(job, 'Audio track extracted (m4a).');
-					} catch {
-						jobLog(job, 'Warning: failed to extract audio');
+					// Extract audio-only m4a alongside the mp4 (if enabled)
+					if (db.data.settings.audioExtraction !== false) {
+						const audioPath = join(DOWNLOAD_DIR, `${videoId}.m4a`);
+						const bitrate = db.data.settings.audioBitrate || 192;
+						try {
+							await extractAudio(outPath, audioPath, bitrate);
+							jobLog(job, 'Audio track extracted (m4a).');
+						} catch {
+							jobLog(job, 'Warning: failed to extract audio');
+						}
 					}
 
 					const existing = db.data.videos.find((v) => v.id === videoId);

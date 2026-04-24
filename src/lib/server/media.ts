@@ -77,8 +77,12 @@ export function probeAudioCodec(videoPath: string): Promise<string> {
 
 // Extract audio track from a video to an .m4a file.
 // Stream-copies when the source codec is already AAC/ALAC (container-compatible),
-// otherwise re-encodes to AAC 192k. -movflags +faststart enables progressive playback.
-export async function extractAudio(videoPath: string, audioPath: string): Promise<void> {
+// otherwise re-encodes to AAC at `bitrateKbps`. -movflags +faststart enables progressive playback.
+export async function extractAudio(
+	videoPath: string,
+	audioPath: string,
+	bitrateKbps = 192
+): Promise<void> {
 	const codec = await probeAudioCodec(videoPath);
 	const canCopy = codec === 'aac' || codec === 'alac';
 	const args = canCopy
@@ -91,7 +95,7 @@ export async function extractAudio(videoPath: string, audioPath: string): Promis
 				'-c:a',
 				'aac',
 				'-b:a',
-				'192k',
+				`${bitrateKbps}k`,
 				'-movflags',
 				'+faststart',
 				audioPath

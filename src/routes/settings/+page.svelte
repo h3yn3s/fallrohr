@@ -35,6 +35,30 @@
 	let updating = $state(false);
 	let updateOutput = $state('');
 
+	const bitrateOptions = [96, 128, 192, 256];
+
+	let backfilling = $state(false);
+	let backfillResult = $state<{
+		scanned: number;
+		extracted: number;
+		skipped: number;
+		failed: number;
+	} | null>(null);
+
+	async function runAudioBackfill() {
+		backfilling = true;
+		backfillResult = null;
+		try {
+			const res = await fetch('/api/audio/backfill', { method: 'POST' });
+			backfillResult = await res.json();
+			await invalidateAll();
+		} catch {
+			backfillResult = { scanned: 0, extracted: 0, skipped: 0, failed: 0 };
+		} finally {
+			backfilling = false;
+		}
+	}
+
 	async function updateYtdlp(channel: 'stable' | 'nightly') {
 		updating = true;
 		updateOutput = '';
@@ -106,6 +130,16 @@
 				<div class="stat-value text-lg">{formatDuration(stats.unwatchedDurationSec)}</div>
 				<div class="stat-desc">unwatched content on disk</div>
 			</div>
+			<div class="stat">
+				<div class="stat-title">Audio tracks</div>
+				<div class="stat-value text-lg">{stats.audioCount}</div>
+				<div class="stat-desc">
+					{stats.audioSizeGB < 0.01 ? '<0.01' : stats.audioSizeGB.toFixed(2)} GB .m4a{stats.audioMissing >
+					0
+						? ` · ${stats.audioMissing} missing`
+						: ''}
+				</div>
+			</div>
 		</div>
 
 		<div class="divider"></div>
@@ -164,6 +198,63 @@
 						{opt.label}
 					</button>
 				{/each}
+			</div>
+		</section>
+
+		<section class="flex flex-col gap-4">
+			<div>
+				<h3 class="font-semibold">Audio extraction</h3>
+				<p class="text-sm text-base-content/60">
+					Generate an audio-only .m4a alongside each downloaded .mp4. Stream-copies when the source
+					is already AAC; otherwise re-encodes at the selected bitrate.
+				</p>
+			</div>
+			<label class="flex cursor-pointer items-center justify-between">
+				<div>
+					<span class="text-sm">Extract audio on download</span>
+					<p class="text-xs text-base-content/50">Enables the "Audio only" playback mode.</p>
+				</div>
+				<input
+					type="checkbox"
+					class="toggle toggle-primary toggle-sm"
+					checked={settings.audioExtraction}
+					onchange={() => updateSetting('audioExtraction', !settings.audioExtraction)}
+				/>
+			</label>
+			<div>
+				<p class="mb-2 text-sm">Re-encode bitrate (non-AAC sources)</p>
+				<div class="flex flex-wrap gap-2">
+					{#each bitrateOptions as kbps}
+						<button
+							class="btn btn-sm"
+							class:btn-primary={settings.audioBitrate === kbps}
+							class:btn-ghost={settings.audioBitrate !== kbps}
+							onclick={() => updateSetting('audioBitrate', kbps)}
+						>
+							{kbps} kbps
+						</button>
+					{/each}
+				</div>
+			</div>
+			<div class="flex flex-wrap items-center gap-3">
+				<button
+					class="btn btn-sm btn-secondary"
+					disabled={backfilling || stats.audioMissing === 0}
+					onclick={runAudioBackfill}
+				>
+					{#if backfilling}
+						<span class="loading loading-xs loading-spinner"></span>
+					{/if}
+					{stats.audioMissing > 0 ? `Backfill ${stats.audioMissing} missing` : 'No missing audio'}
+				</button>
+				{#if backfillResult}
+					<span class="text-xs text-base-content/60">
+						Scanned {backfillResult.scanned} · extracted {backfillResult.extracted} · skipped {backfillResult.skipped}
+						{#if backfillResult.failed > 0}· <span class="text-error"
+								>failed {backfillResult.failed}</span
+							>{/if}
+					</span>
+				{/if}
 			</div>
 		</section>
 
